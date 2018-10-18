@@ -190,7 +190,7 @@ class CRM_Mailjet_Page_EndPoint extends CRM_Core_Page {
   function createBounceActivity(CRM_Mailjet_Logic_Message $message, $contactId) {
     $params = array(
       'sequential' => 1,
-      'activity_type_id' => 58, // Bounce
+      'activity_type_id' => MAILJET_CIVICRM_BOUNCE_ACTIVITY, // Bounce
       'activity_date_time' => $message->time,
       'status_id' => 'Completed',
       'subject' => $message->event,
