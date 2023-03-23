@@ -34,7 +34,7 @@ class CRM_Mailjet_Page_EndPoint extends CRM_Core_Page {
     if (empty($post)) {
       header('HTTP/1.1 421 No Event');
       CRM_Core_Error::debug_var("ENDPOINT EVENT", "Needs to be called by mailjet", true, true);
-      return;
+      CRM_Utils_System::civiExit();
     }
 
     $httpHeader = CRM_Mailjet_Page_EndPoint::processMessage($post);

@@ -28,7 +28,6 @@ function mailjet_civicrm_alterMailParams(&$params, $context) {
   }
 }
 
-
 /**
  * Implementation of hook_civicrm_pageRun
  *
@@ -86,22 +85,11 @@ function mailjet_civicrm_pageRun(&$page) {
   }
 }
 
-
-
 /**
  * Implementation of hook_civicrm_config
  */
 function mailjet_civicrm_config(&$config) {
   _mailjet_civix_civicrm_config($config);
-}
-
-/**
- * Implementation of hook_civicrm_xmlMenu
- *
- * @param $files array(string)
- */
-function mailjet_civicrm_xmlMenu(&$files) {
-  _mailjet_civix_civicrm_xmlMenu($files);
 }
 
 /**
@@ -146,17 +134,6 @@ function mailjet_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
   return _mailjet_civix_civicrm_upgrade($op, $queue);
 }
 
-/**
- * Implementation of hook_civicrm_managed
- *
- * Generate a list of entities to create/deactivate/delete when this module
- * is installed, disabled, uninstalled.
- */
-function mailjet_civicrm_managed(&$entities) {
-  return _mailjet_civix_civicrm_managed($entities);
-}
-
-
 function sumUpStats($base, $newStats) {
   $keys = array(
     'BlockedCount',
@@ -193,4 +170,22 @@ function prepareEventPayload($params) {
     'activityId' => (int) CRM_Utils_Array::value('custom-activity-id', $params),
     'campaignId' => (int) CRM_Utils_Array::value('custom-campaign-id', $params),
   ]);
+}
+
+/**
+ * Implements hook_civicrm_postInstall().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_postInstall
+ */
+function mailjet_civicrm_postInstall() {
+  _mailjet_civix_civicrm_postInstall();
+}
+
+/**
+ * Implements hook_civicrm_entityTypes().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_entityTypes
+ */
+function mailjet_civicrm_entityTypes(&$entityTypes) {
+  _mailjet_civix_civicrm_entityTypes($entityTypes);
 }

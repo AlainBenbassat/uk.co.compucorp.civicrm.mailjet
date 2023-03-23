@@ -19,5 +19,12 @@
   <comments>Patched version of WEMOVE.EU</comments>
   <civix>
     <namespace>CRM/Mailjet</namespace>
+    <format>22.10.0</format>
   </civix>
+  <mixins>
+    <mixin>menu-xml@1.0.0</mixin>
+  </mixins>
+  <classloader>
+    <psr0 prefix="CRM_" path="."/>
+  </classloader>
 </extension>
