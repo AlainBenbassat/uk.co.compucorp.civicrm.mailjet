@@ -100,38 +100,10 @@ function mailjet_civicrm_install() {
 }
 
 /**
- * Implementation of hook_civicrm_uninstall
- */
-function mailjet_civicrm_uninstall() {
-
-  return _mailjet_civix_civicrm_uninstall();
-}
-
-/**
  * Implementation of hook_civicrm_enable
  */
 function mailjet_civicrm_enable() {
   return _mailjet_civix_civicrm_enable();
-}
-
-/**
- * Implementation of hook_civicrm_disable
- */
-function mailjet_civicrm_disable() {
-  return _mailjet_civix_civicrm_disable();
-}
-
-/**
- * Implementation of hook_civicrm_upgrade
- *
- * @param $op string, the type of operation being performed; 'check' or 'enqueue'
- * @param $queue CRM_Queue_Queue, (for 'enqueue') the modifiable list of pending up upgrade tasks
- *
- * @return mixed  based on op. for 'check', returns array(boolean) (TRUE if upgrades are pending)
- *                for 'enqueue', returns void
- */
-function mailjet_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _mailjet_civix_civicrm_upgrade($op, $queue);
 }
 
 function sumUpStats($base, $newStats) {
@@ -170,22 +142,4 @@ function prepareEventPayload($params) {
     'activityId' => (int) CRM_Utils_Array::value('custom-activity-id', $params),
     'campaignId' => (int) CRM_Utils_Array::value('custom-campaign-id', $params),
   ]);
-}
-
-/**
- * Implements hook_civicrm_postInstall().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_postInstall
- */
-function mailjet_civicrm_postInstall() {
-  _mailjet_civix_civicrm_postInstall();
-}
-
-/**
- * Implements hook_civicrm_entityTypes().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_entityTypes
- */
-function mailjet_civicrm_entityTypes(&$entityTypes) {
-  _mailjet_civix_civicrm_entityTypes($entityTypes);
 }

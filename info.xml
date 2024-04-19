@@ -12,19 +12,20 @@
   <version>1.2</version>
   <develStage>beta</develStage>
   <compatibility>
-    <ver>4.5</ver>
-    <ver>4.6</ver>
-    <ver>5</ver>
+    <ver>5.38</ver>
   </compatibility>
   <comments>Patched version of WEMOVE.EU</comments>
   <civix>
     <namespace>CRM/Mailjet</namespace>
-    <format>22.10.0</format>
+    <format>23.02.1</format>
   </civix>
   <mixins>
     <mixin>menu-xml@1.0.0</mixin>
+    <mixin>smarty-v2@1.0.1</mixin>
   </mixins>
   <classloader>
     <psr0 prefix="CRM_" path="."/>
+    <psr4 prefix="Civi\" path="Civi"/>
   </classloader>
+  <upgrader>CRM_Mailjet_Upgrader</upgrader>
 </extension>

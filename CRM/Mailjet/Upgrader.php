@@ -3,7 +3,7 @@
 /**
  * Collection of upgrade steps
  */
-class CRM_Mailjet_Upgrader extends CRM_Mailjet_Upgrader_Base {
+class CRM_Mailjet_Upgrader extends CRM_Extension_Upgrader_Base {
 
   const SOFT_BOUNCE = 'Mailjet Soft Bounces';
   const HARD_BOUNCE = 'Mailjet Hard Bounces';
