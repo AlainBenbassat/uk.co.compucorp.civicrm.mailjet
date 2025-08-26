@@ -22,9 +22,8 @@ Do not trigger events for open and click if you expect to handle any big mailinn
 4. Add add the code below into the site civicrm settings file and put your mailjet api and secret key
 
 ```
-define( 'MAILJET_API_KEY', 'YOUR MAILJET API KEY');
+define( 'MAILJET_API_KEY', 'YOUR MAILJET API KEY');<br/>
 define( 'MAILJET_SECRET_KEY', 'YOUR MAILJET SECRET KEY');
-define( 'MAILJET_CIVICRM_BOUNCE_ACTIVITY', 'YOUR CIVICRM ACTIVITY ID FOR BOUNCES'); // create an activity called e.g. "Bounce" and store its ID here
 ```
 
 ## Read events from an AMQP broker

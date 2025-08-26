@@ -37,3 +37,13 @@ function civicrm_api3_mailjet_processbounces($params) {
   return civicrm_api3_create_success($values, $params, 'mailjet', 'bounces');
 }
 
+function civicrm_api3_mailjet_process_json_message($params) {
+  try {
+    $msg_handler = new CRM_Mailjet_Page_EndPoint();
+    $msg_handler->processMessage($params['message']);
+    return civicrm_api3_create_success();
+  } catch (Exception $ex) {
+    return civicrm_api3_create_error($ex->getMessage(), ['retry_later' => FALSE]);
+  }
+}
+

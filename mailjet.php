@@ -9,20 +9,22 @@ require_once 'mailjet.civix.php';
 function mailjet_civicrm_alterMailParams(&$params, $context) {
   $jobId = CRM_Utils_Array::value('job_id', $params); //CiviCRM job ID
   if (isset($jobId)) {
-    $customID = Civi::cache()->get('mailjet-custom-'. $jobId);
-    if (!isset($customID)) {
-      $customID = CRM_Mailjet_BAO_Event::getMailjetCustomCampaignId($jobId);
-      Civi::cache()->set('mailjet-custom-'. $jobId, $customID);
+    $key = 'mailjet-campaign-'. $jobId;
+    $mailjetCampaign = Civi::cache()->get($key);
+    if (!isset($mailjetCampaign)) {
+      $mailjetCampaign = CRM_Mailjet_BAO_Event::getMailjetCampaign($jobId);
+      Civi::cache()->set($key, $mailjetCampaign);
     }
-    $params['headers']['X-Mailjet-Campaign'] = $customID;
-    $params['headers']['X-Mailjet-CustomValue'] = $customID;
+    $params['headers']['X-Mailjet-Campaign'] = $mailjetCampaign;
+    $params['headers']['X-Mailjet-CustomValue'] = $mailjetCampaign;
     $params['headers']['X-Mailjet-Prio'] = 1; // this has to go batch
-  } else {
+  }
+  else {
     $params['headers']['X-Mailjet-Campaign'] = prepareTransactionalCampaign($params);
     $params['headers']['X-Mailjet-CustomValue'] = prepareTransactionalCampaign($params);
-    $params['headers']['X-MJ-EventPayload'] = prepareEventPayload($params);
     $params['headers']['X-Mailjet-Prio'] = 2; // High priority queue
   }
+  $params['headers']['X-MJ-EventPayload'] = prepareEventPayload($params);
   if (array_key_exists('Subject',$params) && substr($params['Subject'], 0, 16) === "[CiviMail Draft]") {
     $params['headers']['X-Mailjet-Prio'] = 3; // this has to go as fast as possible
   }
@@ -33,7 +35,7 @@ function mailjet_civicrm_alterMailParams(&$params, $context) {
  *
  * Handler for pageRun hook.
  */
-function mailjet_civicrm_pageRun(&$page) {
+/* function mailjet_civicrm_pageRun(&$page) {
   if (get_class($page) == 'CRM_Mailing_Page_Report') {
     $mailingId = $page->_mailing_id;
     $mailingJobs = civicrm_api3('MailingJob', 'get', $params = array('mailing_id' => $mailingId));
@@ -83,7 +85,9 @@ function mailjet_civicrm_pageRun(&$page) {
       'template' => 'CRM/Mailjet/Page/Report.tpl',
     ));
   }
-}
+} */
+
+
 
 /**
  * Implementation of hook_civicrm_config
@@ -137,9 +141,15 @@ function prepareTransactionalCampaign($params) {
 }
 
 function prepareEventPayload($params) {
-  return json_encode([
-    'jobId' => (int) CRM_Utils_Array::value('job_id', $params),
-    'activityId' => (int) CRM_Utils_Array::value('custom-activity-id', $params),
-    'campaignId' => (int) CRM_Utils_Array::value('custom-campaign-id', $params),
-  ]);
+  $current_payload = [];
+  if (isset($params['headers']['X-MJ-EventPayload'])) {
+    // decode current payload
+    $current_payload = json_decode($params['headers']['X-MJ-EventPayload'], TRUE);
+  }
+  // add Event Payload
+  $current_payload['jobId'] = (int) CRM_Utils_Array::value('job_id', $params);
+  $current_payload['activityId'] = (int) CRM_Utils_Array::value('custom-activity-id', $params);
+  $current_payload['campaignId'] = (int) CRM_Utils_Array::value('custom-campaign-id', $params);
+  // return merged payload
+  return json_encode($current_payload);
 }

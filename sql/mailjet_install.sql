@@ -22,7 +22,7 @@ CREATE TABLE `civicrm_mailing_mailjet_event` (
      `mailing_id` int unsigned    COMMENT 'FK to mailing ID and customcampiang on Mailjet',
      `email` varchar(255) NOT NULL   COMMENT 'Email address of recipient triggering the event',
      `event` varchar(255) NOT NULL   ,
-     `mj_campaign_id` int unsigned    COMMENT 'The mailjet campaing _id',
+     `mj_campaign_id` bigint unsigned    COMMENT 'The mailjet campaing _id',
      `mj_contact_id` int unsigned    COMMENT 'The mailjet campaing _id',
      `time` datetime NOT NULL   COMMENT 'Unix timestamp of event (free of timezone concerns)',
      `data` text    COMMENT 'Mailjet row data',

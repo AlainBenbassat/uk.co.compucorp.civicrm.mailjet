@@ -2,8 +2,14 @@
 
 class CRM_Mailjet_BAO_Event extends CRM_Mailjet_DAO_Event {
 
-  static function getMailjetCustomCampaignId($jobId) {
-    if ($jobId !== null) {
+  /**
+   * @param $jobId
+   *
+   * @return string
+   * @throws \CiviCRM_API3_Exception
+   */
+  public static function getMailjetCustomCampaignId($jobId) {
+    if ($jobId !== NULL) {
       $mailingJob = civicrm_api3('MailingJob', 'get', $params = array('id' => $jobId));
       if ($mailingJob['values'][$jobId]['job_type'] == 'child') {
         $timestamp = strtotime($mailingJob['values'][$jobId]['scheduled_date']);
@@ -14,11 +20,35 @@ class CRM_Mailjet_BAO_Event extends CRM_Mailjet_DAO_Event {
   }
 
   /**
+   * @param integer $jobId
+   *
+   * @return string
+   */
+  public static function getMailjetCampaign($jobId) {
+    if ($jobId) {
+      $query = "SELECT CONCAT('ID', mj.mailing_id, 'NM', m.name) mailjet_campaign
+                FROM civicrm_mailing_job mj
+                  JOIN civicrm_mailing m ON mj.mailing_id = m.id
+                WHERE mj.id = %1";
+      $params = [
+        1 => [$jobId, 'Integer'],
+      ];
+      $mailjetCampaign = CRM_Core_DAO::singleValueQuery($query, $params);
+      if ($mailjetCampaign) {
+        return $mailjetCampaign;
+      }
+      return $jobId . 'MJ' . strtotime("now");
+    }
+
+    return 0 . 'MJ' . strtotime("now");
+  }
+
+  /**
    * Store a raw event in the mailjet table
    *
    * @param \CRM_Mailjet_Logic_Message $message
    */
-  static function createFromPostData(CRM_Mailjet_Logic_Message $message) {
+  public static function createFromPostData(CRM_Mailjet_Logic_Message $message) {
     $mailjetEvent = new CRM_Mailjet_DAO_Event();
     $mailjetEvent->mailing_id = $message->mailingId;
     $mailjetEvent->email = $message->email;
@@ -28,49 +58,63 @@ class CRM_Mailjet_BAO_Event extends CRM_Mailjet_DAO_Event {
     $mailjetEvent->time = $message->time;
     $mailjetEvent->data = serialize($message->trigger);
     $mailjetEvent->created_date = date('YmdHis');
-    $mailjetEvent->save(); 
+    $mailjetEvent->save();
   }
 
-  static function recordBounce($params) {
-    $isSpam =  CRM_Utils_Array::value('is_spam', $params);
-    $mailingId = CRM_Utils_Array::value('mailing_id', $params); //CiviCRM mailling ID
-    $contactId = CRM_Utils_Array::value('contact_id' , $params);
-    $emailId =  CRM_Utils_Array::value('email_id' , $params);
-    $email = CRM_Utils_Array::value('email' , $params);
-    $jobId = CRM_Utils_Array::value('job_id' , $params);
+  /**
+   * @param $params
+   *
+   * @return bool
+   * @throws \CiviCRM_API3_Exception
+   */
+  public static function recordBounce($params) {
+    $isSpam = CRM_Utils_Array::value('is_spam', $params);
+    $contactId = CRM_Utils_Array::value('contact_id', $params);
+    $emailId = CRM_Utils_Array::value('email_id', $params);
+    $jobId = CRM_Utils_Array::value('job_id', $params);
     $eqParams = array(
       'job_id' => $jobId,
       'contact_id' => $contactId,
       'email_id' => $emailId,
     );
     $eventQueue = CRM_Mailing_Event_BAO_Queue::create($eqParams);
-    $time =  date('YmdHis', CRM_Utils_Array::value('date_ts', $params));
+    $time = date('YmdHis', CRM_Utils_Array::value('date_ts', $params));
     $bounceType = array();
+    // fixme deprecated function
     CRM_Core_PseudoConstant::populate($bounceType, 'CRM_Mailing_DAO_BounceType', TRUE, 'id', NULL, NULL, NULL, 'name');
-    $bounce = new CRM_Mailing_Event_BAO_Bounce();
-    $bounce->time_stamp = $time;
-    $bounce->event_queue_id = $eventQueue->id;
     if ($isSpam) {
-      $bounce->bounce_type_id = $bounceType[CRM_Mailjet_Upgrader::SPAM];
-      $bounce->bounce_reason = CRM_Utils_Array::value('source', $params); //bounce reason when spam occured
-    } else {
+      $bounceTypeId = $bounceType[CRM_Mailjet_Upgrader::SPAM];
+      $bounceReason = CRM_Utils_Array::value('source', $params); //bounce reason when spam occured
+    }
+    else {
       $hardBounce = CRM_Utils_Array::value('hard_bounce', $params);
       $blocked = CRM_Utils_Array::value('blocked', $params); //  blocked : true if this bounce leads to recipient being blocked
       if ($hardBounce && $blocked) {
-        $bounce->bounce_type_id = $bounceType[CRM_Mailjet_Upgrader::BLOCKED];
-      } elseif ($hardBounce && !$blocked){
-        $bounce->bounce_type_id = $bounceType[CRM_Mailjet_Upgrader::HARD_BOUNCE];
-      } else {
+        $bounceTypeId = $bounceType[CRM_Mailjet_Upgrader::BLOCKED];
+      }
+      elseif ($hardBounce && !$blocked) {
+        $bounceTypeId = $bounceType[CRM_Mailjet_Upgrader::HARD_BOUNCE];
+      }
+      else {
         if (self::isHardError($params)) {
-          $bounce->bounce_type_id = $bounceType[CRM_Mailjet_Upgrader::HARD_BOUNCE];
-        } else {
-          $bounce->bounce_type_id = $bounceType[CRM_Mailjet_Upgrader::SOFT_BOUNCE];
+          $bounceTypeId = $bounceType[CRM_Mailjet_Upgrader::HARD_BOUNCE];
+        }
+        else {
+          $bounceTypeId = $bounceType[CRM_Mailjet_Upgrader::SOFT_BOUNCE];
         }
       }
-      $bounce->bounce_reason  =  $params['error_related_to'] . " - " . $params['error'];
+      $bounceReason = $params['error_related_to'] . " - " . $params['error'];
     }
-    $bounce->save();
-    if ($bounce->bounce_type_id != $bounceType[CRM_Mailjet_Upgrader::SOFT_BOUNCE]) {
+    $bounceParams = [
+      'job_id' => $jobId,
+      'event_queue_id' => $eventQueue->id,
+      'hash' => $eventQueue->hash,
+      'time_stamp' => $time,
+      'bounce_type_id' => $bounceTypeId,
+      'bounce_reason' => $bounceReason,
+    ];
+    CRM_Mailing_Event_BAO_Bounce::create($bounceParams);
+    if ($bounceTypeId != $bounceType[CRM_Mailjet_Upgrader::SOFT_BOUNCE]) {
       $params = array(
         'id' => $contactId,
         'do_not_email' => 1,
@@ -96,4 +140,5 @@ class CRM_Mailjet_BAO_Event extends CRM_Mailjet_DAO_Event {
     ];
     return in_array($error, $hardErrors);
   }
+
 }

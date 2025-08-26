@@ -18,6 +18,7 @@ class CRM_Mailjet_Logic_Message {
   public $source = '';
   public $error_related_to = '';
   public $error = '';
+  public $payload;
   public $message;
   public $trigger;
 
@@ -30,7 +31,6 @@ class CRM_Mailjet_Logic_Message {
     $this->mailingId = CRM_Utils_Array::value('customcampaign', $trigger);
     $this->activityId = $this->getActivityId($trigger);
     $this->campaignId = $this->getCampaignId($trigger);
-    $this->job_id = (int)explode('MJ', $this->mailingId)[0];
     $this->time = date('YmdHis', CRM_Utils_Array::value('time', $trigger));
     $this->date_ts = CRM_Utils_Array::value('time', $trigger);
     $this->hard_bounce = (int)CRM_Utils_Array::value('hard_bounce', $trigger);
@@ -40,6 +40,14 @@ class CRM_Mailjet_Logic_Message {
     $this->error = CRM_Utils_Array::value('error', $trigger);
     $this->mailjetCampaignId = CRM_Utils_Array::value('mj_campaign_id', $trigger);
     $this->mailjetContactId = CRM_Utils_Array::value('mj_contact_id' , $trigger);
+    $this->payload = CRM_Utils_Array::value('Payload', $trigger);
+    if ($this->payload) {
+      $this->payload = json_decode($this->payload);
+      $this->job_id = (int) $this->payload->jobId;
+    }
+    else {
+      $this->job_id = (int) explode('MJ', $this->mailingId)[0];
+    }
   }
 
   public function isValid() {
